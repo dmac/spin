@@ -3,9 +3,10 @@
 (require "spinneret.rkt")
 
 (get ""
-     "This is the index")
+     (lambda () "This is the index"))
 
 (get "hello"
-     "Why hello, there!")
+     (lambda ()
+       (string-append "Hello, " (params 'name) "!")))
 
 (run)

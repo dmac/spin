@@ -2,24 +2,33 @@
 
 (require web-server/servlet
          web-server/servlet-env
-         web-server/dispatch)
+         web-server/dispatch
+         web-server/http/bindings
+         web-server/http/request-structs
+         net/url-structs)
 
 (provide get
+         params
          run)
 
-(define-syntax-rule (get path request-body)
+(define current-request null)
+
+(define (params id)
+  (hash-ref (make-hash (request-bindings current-request)) id))
+
+(define-syntax-rule (get path body-fn)
   (dispatch-rules! app-container
-                   [(path) (render/text request-body)]))
+                   [(path) (render/body body-fn)]))
 
 (define-container app-container (app-dispatch app-url))
 
-; The render/xxx methods take some contents and return
-; a function that accepts a request, suitable to be
-; passed to dispatch-rules.
-; Examples: render/text, render/template
-(define (render/text text)
+(define (render/body body-fn)
   (lambda (req)
-    (response/xexpr `(p ,text))))
+    (set! current-request req)
+    (response/full 200 #"OK"
+                   (current-seconds) TEXT/HTML-MIME-TYPE
+                   '()
+                   (list (string->bytes/utf-8 (body-fn))))))
 
 (define (run)
   (serve/servlet app-dispatch
