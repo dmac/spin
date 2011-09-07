@@ -9,7 +9,7 @@
 
 (provide get
          params
-         run)
+         run!)
 
 (define current-request null)
 
@@ -30,7 +30,7 @@
                    '()
                    (list (string->bytes/utf-8 (body-fn))))))
 
-(define (run)
+(define (run!)
   (serve/servlet app-dispatch
                  #:servlet-regexp #rx""
                  #:command-line? #t))

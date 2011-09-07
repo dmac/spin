@@ -9,4 +9,4 @@
      (lambda ()
        (string-append "Hello, " (params 'name) "!")))
 
-(run)
+(run!)
