@@ -2,11 +2,13 @@
 
 (require "spinneret.rkt")
 
-(get ""
-     (lambda () "This is the index"))
+(get "/"
+     (lambda () "Index page"))
 
-(get "hello"
-     (lambda ()
-       (string-append "Hello, " (params 'name) "!")))
+(get "/hi"
+     (lambda () "Hi there"))
+
+(post "/hi"
+      (lambda () "You posted!!!"))
 
 (run!)
