@@ -1,11 +1,15 @@
 #lang racket
 
-(require "spinneret.rkt")
+(require "spin.rkt"
+         web-server/templates)
 
-(get "/"
-     (lambda () "Index page"))
+(get "/" (lambda ()
+           (define name "Daniel")
+           (include-template "index.html")))
 
-(get "/hi" (lambda (req) (string-append "Hi, " (params req 'name))))
+(get "/hi" (lambda (req)
+             (define name (params req 'name))
+             (include-template "index.html")))
 
 (post "/"
       (lambda (req) (string-append "You posted, " (params req 'name))))

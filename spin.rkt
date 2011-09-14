@@ -1,7 +1,8 @@
 #lang racket
 
 ; TODO
-; * Integrate with Racket's existing templating frameworks
+; * Set status from handlers
+; * Set content type from handlers
 
 (require web-server/servlet
          web-server/servlet-env
