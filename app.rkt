@@ -5,8 +5,7 @@
 (get "/"
      (lambda () "Index page"))
 
-(get "/hi"
-     (lambda () "Hi there"))
+(get "/hi" (lambda (req) (string-append "Hi, " (params req 'name))))
 
 (post "/hi"
       (lambda () "You posted!!!"))

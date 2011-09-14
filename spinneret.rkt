@@ -21,13 +21,14 @@
 (define (request->handler request)
   (let ([handler (hash-ref
                    (hash-ref request-handlers (request-method request) #f)
-                   (url->string (request-uri request)) #f)])
+                   (first (regexp-split #rx"\\?" (url->string (request-uri request))))
+                   #f)])
     (if handler
-      (render/body handler)
+      (render/body handler request)
       (render/404))))
 
 (define (params request id)
-  (hash-ref (make-hash (request-bindings request)) id))
+  (hash-ref (make-hash (request-bindings request)) id #f))
 
 (define (get path handler) (define-handler #"GET" path handler))
 (define (post path handler) (define-handler #"POST" path handler))
@@ -35,11 +36,15 @@
 (define (patch path handler) (define-handler #"PATCH" path handler))
 (define (delete path handler) (define-handler #"DELETE" path handler))
 
-(define (render/body body-fn)
+(define (render/body handler request)
+  (define content
+    (case (procedure-arity handler)
+      [(1) (handler request)]
+      [else (handler)]))
   (response/full 200 #"OK"
                  (current-seconds) TEXT/HTML-MIME-TYPE
                  '()
-                 (list (string->bytes/utf-8 (body-fn)))))
+                 (list (string->bytes/utf-8 content))))
 
 (define (render/404)
   (response/full 404 #"Not Found"
