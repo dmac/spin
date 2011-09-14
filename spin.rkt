@@ -14,6 +14,28 @@
          params
          run!)
 
+(define (get path handler) (define-handler #"GET" path handler))
+(define (post path handler) (define-handler #"POST" path handler))
+(define (put path handler) (define-handler #"PUT" path handler))
+(define (patch path handler) (define-handler #"PATCH" path handler))
+(define (delete path handler) (define-handler #"DELETE" path handler))
+
+(define (run!)
+  (serve/servlet request->handler
+                 #:servlet-regexp #rx""
+                 #:command-line? #t))
+
+; TODO: Make this work with path variables
+; TODO: The body-pairs logic can probably be cleaned up quite a bit.
+(define (params request key)
+  (define query-pairs (url-query (request-uri request)))
+  (define body-pairs
+    (let ([body-raw (request-post-data/raw request)])
+      (if body-raw
+        (url-query (string->url (string-append "?" (bytes->string/utf-8 body-raw))))
+        '())))
+  (hash-ref (make-hash (append query-pairs body-pairs)) key ""))
+
 (define request-handlers (make-hash))
 
 (define (define-handler method path handler)
@@ -30,22 +52,6 @@
       (render/body handler request)
       (render/404))))
 
-; TODO: Make this work with path variables
-; TODO: The body-pairs logic can probably be cleaned up quite a bit.
-(define (params request key)
-  (define query-pairs (url-query (request-uri request)))
-  (define body-pairs
-    (let ([body-raw (request-post-data/raw request)])
-      (if body-raw
-        (url-query (string->url (string-append "?" (bytes->string/utf-8 body-raw))))
-        '())))
-  (hash-ref (make-hash (append query-pairs body-pairs)) key ""))
-
-(define (get path handler) (define-handler #"GET" path handler))
-(define (post path handler) (define-handler #"POST" path handler))
-(define (put path handler) (define-handler #"PUT" path handler))
-(define (patch path handler) (define-handler #"PATCH" path handler))
-(define (delete path handler) (define-handler #"DELETE" path handler))
 
 (define (render/body handler request)
   (define content
@@ -62,9 +68,4 @@
                  (current-seconds) TEXT/HTML-MIME-TYPE
                  '()
                  '(#"Not Found")))
-
-(define (run!)
-  (serve/servlet request->handler
-                 #:servlet-regexp #rx""
-                 #:command-line? #t))
 
