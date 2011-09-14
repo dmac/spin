@@ -5,7 +5,6 @@
 
 (require web-server/servlet
          web-server/servlet-env
-         web-server/dispatch
          web-server/http/bindings
          web-server/http/request-structs
          net/url-structs)
