@@ -1,5 +1,9 @@
 #lang racket
 
+; TODO
+; * What's the best way to access params? Have it be a hash? Or with "magic" (params 'key) syntax?
+; * Integrate with Racket's existing templating frameworks
+
 (require web-server/servlet
          web-server/servlet-env
          web-server/dispatch
@@ -27,6 +31,7 @@
       (render/body handler request)
       (render/404))))
 
+; TODO: Make this work with all kinds of params: path, query string, request body
 (define (params request id)
   (hash-ref (make-hash (request-bindings request)) id #f))
 
