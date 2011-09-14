@@ -7,7 +7,10 @@
 
 (get "/hi" (lambda (req) (string-append "Hi, " (params req 'name))))
 
-(post "/hi"
-      (lambda () "You posted!!!"))
+(post "/"
+      (lambda (req) (string-append "You posted, " (params req 'name))))
+
+(put "/"
+      (lambda (req) (string-append "You posted, " (params req 'name))))
 
 (run!)
