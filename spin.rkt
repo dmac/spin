@@ -14,11 +14,11 @@
          params
          run!)
 
-(define (get path handler) (define-handler #"GET" path handler))
-(define (post path handler) (define-handler #"POST" path handler))
-(define (put path handler) (define-handler #"PUT" path handler))
-(define (patch path handler) (define-handler #"PATCH" path handler))
-(define (delete path handler) (define-handler #"DELETE" path handler))
+(define (get path handler) (define-handler "GET" path handler))
+(define (post path handler) (define-handler "POST" path handler))
+(define (put path handler) (define-handler "PUT" path handler))
+(define (patch path handler) (define-handler "PATCH" path handler))
+(define (delete path handler) (define-handler "DELETE" path handler))
 
 (define (run!)
   (serve/servlet request->handler
@@ -39,14 +39,16 @@
 (define request-handlers (make-hash))
 
 (define (define-handler method path handler)
-  (let ([url-hash (hash-ref request-handlers method (make-hash))])
-    (hash-set! url-hash path handler)
-    (hash-set! request-handlers method url-hash)))
+  (hash-set! request-handlers
+             (string-append method " " path)
+             handler))
 
 (define (request->handler request)
   (let ([handler (hash-ref
-                   (hash-ref request-handlers (request-method request) #f)
-                   (first (regexp-split #rx"\\?" (url->string (request-uri request))))
+                   request-handlers
+                   (string-append (bytes->string/utf-8 (request-method request))
+                                  " "
+                                  (first (regexp-split #rx"\\?" (url->string (request-uri request)))))
                    #f)])
     (if handler
       (render/body handler request)
