@@ -25,7 +25,7 @@
                  #:servlet-regexp #rx""
                  #:command-line? #t))
 
-; TODO: Make this work with path variables
+; TODO: Make this work with path variables by using regexps instead of string paths
 ; TODO: The body-pairs logic can probably be cleaned up quite a bit.
 (define (params request key)
   (define query-pairs (url-query (request-uri request)))
