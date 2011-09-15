@@ -42,16 +42,14 @@
              handler))
 
 (define (request->handler request)
-  (let ([handler (hash-ref
-                   request-handlers
-                   (string-append (bytes->string/utf-8 (request-method request))
-                                  " "
-                                  (first (regexp-split #rx"\\?" (url->string (request-uri request)))))
-                   #f)])
-    (if handler
-      (render/body handler request)
-      (render/404))))
-
+  (define handler-key
+    (string-join (list (bytes->string/utf-8 (request-method request))
+                       (first (regexp-split #rx"\\?" (url->string (request-uri request)))))
+                 " "))
+  (define handler (hash-ref request-handlers handler-key #f))
+  (cond
+    (handler (render/body handler request))
+    (else (render/404))))
 
 (define (render/body handler request)
   (define content
