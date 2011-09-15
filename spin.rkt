@@ -26,14 +26,12 @@
                  #:command-line? #t))
 
 ; TODO: Make this work with path variables by using regexps instead of string paths
-; TODO: The body-pairs logic can probably be cleaned up quite a bit.
 (define (params request key)
   (define query-pairs (url-query (request-uri request)))
   (define body-pairs
-    (let ([body-raw (request-post-data/raw request)])
-      (if body-raw
-        (url-query (string->url (string-append "?" (bytes->string/utf-8 body-raw))))
-        '())))
+    (match (request-post-data/raw request)
+      [#f empty]
+      [body (url-query (string->url (string-append "?" (bytes->string/utf-8 body))))]))
   (hash-ref (make-hash (append query-pairs body-pairs)) key ""))
 
 (define request-handlers (make-hash))
