@@ -85,7 +85,6 @@
                        (url->string (request-uri request)))))
   (findf key-matches-route? (hash-keys request-handlers)))
 
-
 (define (render/body handler request)
   (define content
     (case (procedure-arity handler)
