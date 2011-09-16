@@ -4,6 +4,9 @@
 ; * Set status from handlers
 ; * Set content type from handlers
 ; * tests??
+; * Can I write a syntax-rule that changes this:
+;     (get "/" form form form)
+; ->  (get "/" (lambda (req) form form form)
 
 (require web-server/servlet
          web-server/servlet-env
