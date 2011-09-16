@@ -1,8 +1,7 @@
 #lang racket
 
 ; TODO
-; * Set status from handlers
-; * Set content type from handlers
+; * allow headers to be specified as strings rather than (header?)
 ; * tests??
 ; * look into ORMs
 
@@ -62,7 +61,7 @@
 (define (request->handler request)
   (define handler/keys (request->handler/keys request))
   (cond
-    (handler/keys (render/body (car handler/keys) request))
+    (handler/keys (render/handler (car handler/keys) request))
     (else (render/404))))
 
 (define (request->handler/keys request)
@@ -87,19 +86,76 @@
                        (url->string (request-uri request)))))
   (findf key-matches-route? (hash-keys request-handlers)))
 
-(define (render/body handler request)
+(define (render/handler handler request)
   (define content
     (case (procedure-arity handler)
       [(1) (handler request)]
       [else (handler)]))
-  (response/full 200 #"OK"
-                 (current-seconds) TEXT/HTML-MIME-TYPE
-                 '()
-                 (list (string->bytes/utf-8 content))))
+  (define status
+    (cond [(list? content) (first content)]
+          [else 200]))
+  (define headers
+    (cond [(list? content) (second content)]
+          [else '()]))
+  (define body
+    (cond [(list? content) (third content)]
+          [else content]))
+
+  (response/full status
+                 (status->message status)
+                 (current-seconds)
+                 TEXT/HTML-MIME-TYPE
+                 headers
+                 (list (string->bytes/utf-8 body))))
 
 (define (render/404)
-  (response/full 404 #"Not Found"
-                 (current-seconds) TEXT/HTML-MIME-TYPE
+  (response/full 404
+                 (status->message 404)
+                 (current-seconds)
+                 TEXT/HTML-MIME-TYPE
                  '()
                  '(#"Not Found")))
 
+(define (status->message status)
+  (case status
+    [(100) #"Continue"]
+    [(101) #"Switching Protocols"]
+    [(200) #"OK"]
+    [(201) #"Created"]
+    [(202) #"Accepted"]
+    [(203) #"Non-Authoritative Information"]
+    [(204) #"No Content"]
+    [(205) #"Reset Content"]
+    [(206) #"Partial Content"]
+    [(300) #"Multiple Choices"]
+    [(301) #"Moved Permanently"]
+    [(302) #"Found"]
+    [(303) #"See Other"]
+    [(304) #"Not Modified"]
+    [(305) #"Use Proxy"]
+    [(307) #"Temporary Redirect"]
+    [(400) #"Bad Request"]
+    [(401) #"Unauthorized"]
+    [(402) #"Payment Required"]
+    [(403) #"Forbidden"]
+    [(404) #"Not Found"]
+    [(405) #"Method Not Allowed"]
+    [(406) #"Not Acceptable"]
+    [(407) #"Proxy Authentication Required"]
+    [(408) #"Request Timeout"]
+    [(409) #"Conflict"]
+    [(410) #"Gone"]
+    [(411) #"Length Required"]
+    [(412) #"Precondition Failed"]
+    [(413) #"Request Entity Too Large"]
+    [(414) #"Request-URI Too Long"]
+    [(415) #"Unsupported Media Type"]
+    [(416) #"Requested Range Not Satisfiable"]
+    [(417) #"Expectation Failed"]
+    [(500) #"Internal Server Error"]
+    [(501) #"Not Implemented"]
+    [(502) #"Bad Gateway"]
+    [(503) #"Service Unavailable"]
+    [(504) #"Gateway Timeout"]
+    [(505) #"HTTP Version Not Supported"]
+    [else #""]))
