@@ -26,14 +26,16 @@
                  #:servlet-regexp #rx""
                  #:command-line? #t))
 
-; TODO: Make this work with path variables by using regexps instead of string paths
 (define (params request key)
   (define query-pairs (url-query (request-uri request)))
   (define body-pairs
     (match (request-post-data/raw request)
       [#f empty]
       [body (url-query (string->url (string-append "?" (bytes->string/utf-8 body))))]))
-  (hash-ref (make-hash (append query-pairs body-pairs)) key ""))
+  (define url-pairs
+    (let ([keys (cdr (request->handler/keys request))])
+      (request->key-bindings request keys)))
+  (hash-ref (make-hash (append query-pairs body-pairs url-pairs)) key ""))
 
 (define request-handlers (make-hash))
 
@@ -62,18 +64,27 @@
     (else (render/404))))
 
 (define (request->handler/keys request)
-  (displayln (hash-keys request-handlers))
+  (define handler-key (request->matching-key request))
+  (case handler-key
+    [(#f) #f]
+    [else (hash-ref request-handlers handler-key #f)]))
+
+(define (request->key-bindings request keys)
+  (define path-regexp
+    (second (regexp-split #rx" " (request->matching-key request))))
+  (define bindings (cdr (regexp-match path-regexp (url->string (request-uri request)))))
+  (for/list ([key keys] [binding bindings])
+            (cons key binding)))
+
+(define (request->matching-key request)
   (define (key-matches-route? key)
     (match-define (list _ method path-regexp)
                   (regexp-match #rx"([^ ]+) ([^ ]+)" key))
     (and (equal? (request-method request) (string->bytes/utf-8 method))
          (regexp-match (regexp path-regexp)
                        (url->string (request-uri request)))))
-  (define handler-key
-    (findf key-matches-route? (hash-keys request-handlers)))
-  (case handler-key
-    [(#f) #f]
-    [else (hash-ref request-handlers handler-key #f)]))
+  (findf key-matches-route? (hash-keys request-handlers)))
+
 
 (define (render/body handler request)
   (define content
