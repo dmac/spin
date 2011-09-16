@@ -6,9 +6,6 @@
 ; * tests??
 ; * app options (port, template path, etc.)
 ; * look into ORMs
-; * Can I write a syntax-rule that changes this:
-;     (get "/" form form form)
-; ->  (get "/" (lambda (req) form form form)
 
 (require web-server/servlet
          web-server/servlet-env
