@@ -15,6 +15,8 @@
          params
          run!)
 
+(struct handler/keys (handler keys))
+
 (define (get path handler) (define-handler "GET" path handler))
 (define (post path handler) (define-handler "POST" path handler))
 (define (put path handler) (define-handler "PUT" path handler))
@@ -37,11 +39,28 @@
 
 (define request-handlers (make-hash))
 
+; TODO:
+; * create handler/keys: (handler . (key ...))
+; * use "METHOD path-regexp" => handler/keys
 (define (define-handler method path handler)
+  (define keys (path->keys path))
+  (define path-regexp (compile-path path))
+  (displayln path-regexp)
   (hash-set! request-handlers
              (string-append method " " path)
              handler))
 
+(define (path->keys path)
+  (map (lambda (match) (string->symbol (substring match 2)))
+       (regexp-match* #rx"/:([^\\/]+)" path)))
+
+(define (compile-path path)
+  (regexp-replace* #rx":[^\\/]+" path "([^/]+)"))
+
+; TODO:
+; * loop through request-handlers keys
+; * split on space, check regexp match and method match
+; * handler is value from first matching key
 (define (request->handler request)
   (define handler-key
     (string-join (list (bytes->string/utf-8 (request-method request))
