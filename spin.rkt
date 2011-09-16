@@ -4,7 +4,6 @@
 ; * Set status from handlers
 ; * Set content type from handlers
 ; * tests??
-; * app options (port, template path, etc.)
 ; * look into ORMs
 
 (require web-server/servlet
@@ -15,7 +14,7 @@
 
 (provide get post put patch delete
          params
-         run!)
+         run)
 
 (define (get path handler) (define-handler "GET" path handler))
 (define (post path handler) (define-handler "POST" path handler))
@@ -23,8 +22,9 @@
 (define (patch path handler) (define-handler "PATCH" path handler))
 (define (delete path handler) (define-handler "DELETE" path handler))
 
-(define (run!)
+(define (run #:port [port 8000])
   (serve/servlet request->handler
+                 #:port port
                  #:servlet-regexp #rx""
                  #:command-line? #t))
 

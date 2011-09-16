@@ -13,4 +13,4 @@
   (define second_name (params req 'second_name))
   (include-template "index.html")))
 
-(run!)
+(run)
