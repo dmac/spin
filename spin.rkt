@@ -1,8 +1,7 @@
 #lang racket
 
 ; TODO
-; * allow headers to be specified as strings rather than (header?)
-; * tests??
+; * tests
 ; * look into ORMs
 
 (require web-server/servlet
@@ -13,6 +12,7 @@
 
 (provide get post put patch delete
          params
+         header
          run)
 
 (define (get path handler) (define-handler "GET" path handler))
