@@ -3,11 +3,12 @@
 (require "spin.rkt"
          web-server/templates)
 
-;(get "/" (lambda ()
-;           (define name "Daniel")
-;           (include-template "index.html")))
+(get "/" (lambda () "Index"))
 
-(get "/hi/:name/hi/:two" (lambda (req)
+(get "/hi/:name" (lambda (req)
+                   (string-append "Hi, " (params req 'name))))
+
+(get "/hi/:me/hi/:you" (lambda (req)
              (define name (params req 'name))
              (include-template "index.html")))
 

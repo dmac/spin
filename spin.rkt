@@ -15,8 +15,6 @@
          params
          run!)
 
-(struct handler/keys (handler keys))
-
 (define (get path handler) (define-handler "GET" path handler))
 (define (post path handler) (define-handler "POST" path handler))
 (define (put path handler) (define-handler "PUT" path handler))
@@ -39,37 +37,43 @@
 
 (define request-handlers (make-hash))
 
-; TODO:
-; * create handler/keys: (handler . (key ...))
-; * use "METHOD path-regexp" => handler/keys
 (define (define-handler method path handler)
   (define keys (path->keys path))
   (define path-regexp (compile-path path))
-  (displayln path-regexp)
+  (define handler/keys (cons handler keys))
   (hash-set! request-handlers
-             (string-append method " " path)
-             handler))
+             (string-append method " " path-regexp)
+             handler/keys))
 
 (define (path->keys path)
   (map (lambda (match) (string->symbol (substring match 2)))
        (regexp-match* #rx"/:([^\\/]+)" path)))
 
 (define (compile-path path)
-  (regexp-replace* #rx":[^\\/]+" path "([^/]+)"))
+  (string-append
+    "^"
+    (regexp-replace* #rx":[^\\/]+" path "([^/?]+)")
+    "(?:$|\\?)"))
 
-; TODO:
-; * loop through request-handlers keys
-; * split on space, check regexp match and method match
-; * handler is value from first matching key
 (define (request->handler request)
-  (define handler-key
-    (string-join (list (bytes->string/utf-8 (request-method request))
-                       (first (regexp-split #rx"\\?" (url->string (request-uri request)))))
-                 " "))
-  (define handler (hash-ref request-handlers handler-key #f))
+  (define handler/keys (request->handler/keys request))
   (cond
-    (handler (render/body handler request))
+    (handler/keys (render/body (car handler/keys) request))
     (else (render/404))))
+
+(define (request->handler/keys request)
+  (displayln (hash-keys request-handlers))
+  (define (key-matches-route? key)
+    (match-define (list _ method path-regexp)
+                  (regexp-match #rx"([^ ]+) ([^ ]+)" key))
+    (and (equal? (request-method request) (string->bytes/utf-8 method))
+         (regexp-match (regexp path-regexp)
+                       (url->string (request-uri request)))))
+  (define handler-key
+    (findf key-matches-route? (hash-keys request-handlers)))
+  (case handler-key
+    [(#f) #f]
+    [else (hash-ref request-handlers handler-key #f)]))
 
 (define (render/body handler request)
   (define content
