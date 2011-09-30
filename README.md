@@ -48,7 +48,7 @@ Retrive params from the url string itself:
 ```
 
 ```
-$ curl "http://localhost:8000/hi/Peter" -X POST
+$ curl "http://localhost:8000/hi/Peter"
 Hello, Peter!
 ```
 
