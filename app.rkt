@@ -1,6 +1,6 @@
 #lang racket
 
-(require "spin.rkt"
+(require "src/spin/main.rkt"
          web-server/templates)
 
 (get "/" (lambda () "GET request"))
