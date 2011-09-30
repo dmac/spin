@@ -1,6 +1,6 @@
 #lang racket
 
-(require "src/spin/main.rkt"
+(require (planet dmac/spin)
          web-server/templates)
 
 (get "/" (lambda () "GET request"))

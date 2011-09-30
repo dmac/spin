@@ -11,7 +11,7 @@ Define routes with one of `get`, `post`, `put`, `patch`, `delete` and pass it th
 ```
 #lang racket
 
-(require "spin.rkt")
+(require (planet dmac/spin))
 
 (get "/"
   (lambda () "Hello!"))

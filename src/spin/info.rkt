@@ -1,7 +1,8 @@
 #lang setup/infotab
 (define name "spin")
 (define blurb
-  (list "Write RESTful web apps in Racket."))
+  (list '(p "Write RESTful web apps in Racket.")
+        '(p"Documentation can be found on the github page.")))
 (define release-notes
   (list '(ul (li "Initial release"))))
 (define primary-file "main.rkt")
