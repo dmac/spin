@@ -8,7 +8,7 @@ Spin layers some convenience functions on top of Racket's built-in web server to
 
 Define routes with one of `get`, `post`, `put`, `patch`, `delete` and pass it the route string and a handler function.
 
-```
+```scheme
 #lang racket
 
 (require (planet dmac/spin))
@@ -25,7 +25,7 @@ Your handler function will be passed the request object if an argument is specif
 
 It can be given to the `params` function along with a key to search for values in the query-string, post-body, or url.
 
-```
+```scheme
 (get "/hi" (lambda (req)
   (string-append "Hello, " (params req 'name) "!")))
 ```
@@ -42,7 +42,7 @@ Hello, Anansi!
 
 Retrieve params from the url string itself:
 
-```
+```scheme
 (get "/hi/:name" (lambda (req)
   (string-append "Hello, " (params req 'name) "!")))
 ```
@@ -58,7 +58,7 @@ Your handler function need only return a string to render. You can easily use ex
 
 **app.rkt**
 
-```
+```scheme
 (require web-server/templates)
 
 (get "/template" (lambda (req)
@@ -70,7 +70,7 @@ Your handler function need only return a string to render. You can easily use ex
 
 **index.html**
 
-```
+```html
 <html>
   <body>
     <p>Hello, @|name|!</p>
@@ -91,7 +91,7 @@ $ curl "http://localhost:8000/template?name=Aragog"
 
 In addition to the response body, you can specify response status and custom headers if you return a list instead of a string from your handler:
 
-```
+```scheme
 (get "/headers" (lambda ()
   (define h (header #"Custom-Header" #"Itsy bitsy"))
   `(201 (,h) "Look for the custom header!")))
