@@ -40,7 +40,7 @@ $ curl "http://localhost:8000/hi" -X POST -d "name=Anansi"
 Hello, Anansi!
 ```
 
-Retrive params from the url string itself:
+Retrieve params from the url string itself:
 
 ```
 (get "/hi/:name" (lambda (req)
