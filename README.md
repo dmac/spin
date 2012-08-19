@@ -96,10 +96,3 @@ In addition to the response body, you can specify response status and custom hea
   (define h (header #"Custom-Header" #"Itsy bitsy"))
   `(201 (,h) "Look for the custom header!")))
 ```
-
-## Requirements
-
-Due to a recent [bug fix](https://github.com/plt/racket/commit/78151e073b696522cb187c5cb480bd9cb9d5599c) with how Racket's web server handles certain HTTP requests, Spin requires Racket version 5.1.3.9 or greater.
-
-Nightly versions of Racket can be downloaded [here](http://pre.plt-scheme.org/installers/).
-
