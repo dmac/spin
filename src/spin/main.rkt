@@ -21,11 +21,26 @@
 (define (patch path handler) (define-handler "PATCH" path handler))
 (define (delete path handler) (define-handler "DELETE" path handler))
 
-(define (run #:port [port 8000])
-  (serve/servlet request->handler
-                 #:port port
-                 #:servlet-regexp #rx""
-                 #:command-line? #t))
+(define run
+  (make-keyword-procedure
+    (lambda (kws kw-args . etc)
+      (cond
+        [(not (empty? etc))
+         (error 'run
+                "expected kw args (for serve/servlet) only; found ~a non-kw args"
+                (length etc))]
+        [(ormap (curryr memq '(#:servlet-regexp #:command-line?)) kws)
+         (error 'run
+                "kw args may not include #:servlet-regexp or #:command-line?")]
+        [else
+         (let* ([kw-pairs (append '((#:servlet-regexp #rx"")
+                                    (#:command-line? #t))
+                                  (map list kws kw-args))]
+                [sorted-pairs (sort kw-pairs keyword<? #:key first)])
+           (keyword-apply serve/servlet
+                          (map first sorted-pairs)
+                          (map second sorted-pairs)
+                          (list request->handler)))]))))
 
 (define (params request key)
   (define query-pairs (url-query (request-uri request)))
