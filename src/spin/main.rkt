@@ -11,6 +11,9 @@
          net/url-structs)
 
 (provide get post put patch delete
+         default-response-maker
+         status->message
+         define-handler
          params
          header
          run)
@@ -20,6 +23,14 @@
 (define (put path handler) (define-handler "PUT" path handler))
 (define (patch path handler) (define-handler "PATCH" path handler))
 (define (delete path handler) (define-handler "DELETE" path handler))
+
+(define (default-response-maker status headers body)
+  (response/full status
+                 (status->message status)
+                 (current-seconds)
+                 TEXT/HTML-MIME-TYPE
+                 headers
+                 (list (string->bytes/utf-8 body))))
 
 (define run
   (make-keyword-procedure
@@ -35,12 +46,21 @@
         [else
          (let* ([kw-pairs (append '((#:servlet-regexp #rx"")
                                     (#:command-line? #t))
-                                  (map list kws kw-args))]
-                [sorted-pairs (sort kw-pairs keyword<? #:key first)])
+                                  (filter (lambda (kw-pair)
+                                            (not (eq? '#:response-maker (car kw-pair))))
+                                          (map list kws kw-args)))]
+                [sorted-pairs (sort kw-pairs keyword<? #:key first)]
+                [response-maker (let ([response-maker-pair
+                                       (findf (lambda (p) (eq? (car p) '#:response-maker))
+                                              (map list kws kw-args))])
+                                  (if response-maker-pair
+                                      (cadr response-maker-pair)
+                                      default-response-maker))])
            (keyword-apply serve/servlet
                           (map first sorted-pairs)
                           (map second sorted-pairs)
-                          (list request->handler)))]))))
+                          (list (lambda (req)
+                                  (request->handler req response-maker)))))]))))
 
 (define (params request key)
   (define query-pairs (url-query (request-uri request)))
@@ -49,19 +69,19 @@
       [#f empty]
       [body (url-query (string->url (string-append "?" (bytes->string/utf-8 body))))]))
   (define url-pairs
-    (let ([keys (cdr (request->handler/keys request))])
+    (let ([keys (cadr (request->handler/keys/response-maker request))])
       (request->key-bindings request keys)))
   (hash-ref (make-hash (append query-pairs body-pairs url-pairs)) key ""))
 
 (define request-handlers (make-hash))
 
-(define (define-handler method path handler)
+(define (define-handler method path handler [response-maker default-response-maker])
   (define keys (path->keys path))
   (define path-regexp (compile-path path))
-  (define handler/keys (cons handler keys))
+  (define handler/keys/response-maker (list handler keys response-maker))
   (hash-set! request-handlers
              (string-append method " " path-regexp)
-             handler/keys))
+             handler/keys/response-maker))
 
 (define (path->keys path)
   (map (lambda (match) (string->symbol (substring match 2)))
@@ -73,13 +93,17 @@
     (regexp-replace* #rx":[^\\/]+" path "([^/?]+)")
     "(?:$|\\?)"))
 
-(define (request->handler request)
-  (define handler/keys (request->handler/keys request))
-  (cond
-    (handler/keys (render/handler (car handler/keys) request))
-    (else (render/404))))
+(define (request->handler request
+                          response-maker)
+  (define handler/keys/response-maker (request->handler/keys/response-maker request))
+  (begin (printf (url->string (request-uri request)))
+    (cond
+    [handler/keys/response-maker (render/handler (car handler/keys/response-maker)
+                                                 request
+                                                 (caddr handler/keys/response-maker))]
+    [else (render/404 response-maker)])))
 
-(define (request->handler/keys request)
+(define (request->handler/keys/response-maker request)
   (define handler-key (request->matching-key request))
   (case handler-key
     [(#f) #f]
@@ -101,7 +125,7 @@
                        (url->string (request-uri request)))))
   (findf key-matches-route? (hash-keys request-handlers)))
 
-(define (render/handler handler request)
+(define (render/handler handler request response-maker)
   (define content
     (case (procedure-arity handler)
       [(1) (handler request)]
@@ -116,20 +140,12 @@
     (cond [(list? content) (third content)]
           [else content]))
 
-  (response/full status
-                 (status->message status)
-                 (current-seconds)
-                 TEXT/HTML-MIME-TYPE
-                 headers
-                 (list (string->bytes/utf-8 body))))
+  (response-maker status headers body))
 
-(define (render/404)
-  (response/full 404
-                 (status->message 404)
-                 (current-seconds)
-                 TEXT/HTML-MIME-TYPE
-                 '()
-                 '(#"Not Found")))
+(define (render/404 response-maker)
+  (response-maker 404
+                  '()
+                  "Not Found"))
 
 (define (status->message status)
   (case status
