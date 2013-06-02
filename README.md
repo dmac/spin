@@ -96,3 +96,44 @@ In addition to the response body, you can specify response status and custom hea
   (define h (header #"Custom-Header" #"Itsy bitsy"))
   `(201 (,h) "Look for the custom header!")))
 ```
+
+## Response Makers
+
+Response makers are middleware that transform a response before it is sent to the client.
+
+A global default response maker can be defined by passing it to the run function:
+
+```scheme
+(define (json-404-response-maker status headers body)
+  (response status
+            (status->message status)
+            (current-seconds)
+            #"application/json; charset=utf-8"
+            headers
+            (let ([jsexpr-body (case status
+                                 [(404) (string->jsexpr
+                                         "{\"error\": 404, \"message\": \"Not Found\"}")]
+                                 [else body])])
+              (lambda (op) (write-json (force jsexpr-body) op)))))
+
+(run #:response-maker json-404-response-maker)
+```
+
+It is also possible to define new handler types that use different response makers:
+
+```scheme
+(define (json-response-maker status headers body)
+  (response status
+            (status->message status)
+            (current-seconds)
+            #"application/json; charset=utf-8"
+            headers
+            (let ([jsexpr-body (string->jsexpr body)])
+              (lambda (op) (write-json (force jsexpr-body) op)))))
+
+(define (json-get path handler)
+  (define-handler "GET" path handler json-response-maker))
+
+(json-get "/json" (lambda (req)
+  "{\"body\":\"JSON GET\"}"))
+```
