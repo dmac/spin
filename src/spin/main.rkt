@@ -96,12 +96,13 @@
 (define (request->handler request
                           response-maker)
   (define handler/keys/response-maker (request->handler/keys/response-maker request))
-  (begin (printf (url->string (request-uri request)))
+  (begin
+    (printf (url->string (request-uri request)))
     (cond
-    [handler/keys/response-maker (render/handler (car handler/keys/response-maker)
-                                                 request
-                                                 (caddr handler/keys/response-maker))]
-    [else (render/404 response-maker)])))
+      [handler/keys/response-maker (render/handler (car handler/keys/response-maker)
+                                                   request
+                                                   (caddr handler/keys/response-maker))]
+      [else (render/404 response-maker)])))
 
 (define (request->handler/keys/response-maker request)
   (define handler-key (request->matching-key request))
