@@ -137,3 +137,8 @@ It is also possible to define new handler types that use different response make
 (json-get "/json" (lambda (req)
   "{\"body\":\"JSON GET\"}"))
 ```
+
+## Contributors
+
+- Felipe Oliveira Carvalho ([@philix](https://github.com/philix))
+- Jordan Johnson ([@RenaissanceBug](https://github.com/RenaissanceBug))
