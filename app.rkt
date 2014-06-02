@@ -1,6 +1,6 @@
 #lang racket
 
-(require "src/spin/main.rkt"
+(require "main.rkt"
          web-server/servlet
          web-server/templates
          json)
