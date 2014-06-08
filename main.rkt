@@ -97,7 +97,6 @@
                           response-maker)
   (define handler/keys/response-maker (request->handler/keys/response-maker request))
   (begin
-    (printf (url->string (request-uri request)))
     (cond
       [handler/keys/response-maker (render/handler (car handler/keys/response-maker)
                                                    request
