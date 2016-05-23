@@ -72,20 +72,21 @@ wildcards.
 **Note** that multiple multi-field wildcards will only work *if* there is
 a fixed field between the wildcard fields:
 
-
 ```scheme
-(get "/appFiles/*file-path/and/*second-path" (lambda (req)
+(get "/title/*title/date/*date" (lambda (req)
   (string-append
-    "Requested file: " (params req 'file-path)
-    "\nSecond path: " (params req 'second-path)
+    "Post title: " (params req 'title)
+    "\nPost  date: " (params req 'date)
   )))
 ```
 
 ```
-$ curl "http://localhost:8000/appFiles/images/jasmine_favicon.png/someThingMore/"
-Requested file: images/jasmine_favicon.png
-Second path: lib/jasmine-core/jasmine.css
+$ curl "http://localhost:8000/title/proving/computations/correct/date/2016/05/23/"
+Post title: proving/computations/correct
+Post  date: 2016/05/23
 ```
+
+(anything will work so long as it does not start with either ':' or '*').
 
 ## Templating
 
