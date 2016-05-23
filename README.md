@@ -40,7 +40,8 @@ $ curl "http://localhost:8000/hi" -X POST -d "name=Anansi"
 Hello, Anansi!
 ```
 
-Retrieve params from the url string itself:
+Retrieve params from the url string itself using a single ('/'-delimited)
+field:
 
 ```scheme
 (get "/hi/:name" (lambda (req)
@@ -50,6 +51,40 @@ Retrieve params from the url string itself:
 ```
 $ curl "http://localhost:8000/hi/Peter"
 Hello, Peter!
+```
+
+OR using a multi-field "wildcard":
+
+
+```scheme
+(get "/appFiles/*file-path" (lambda (req)
+  (string-append "Requested file: " (params req 'file-path) "!")))
+```
+
+```
+$ curl "http://localhost:8000/appFiles/images/jasmine_favicon.png"
+Requested file: images/jasmine_favicon.png
+```
+
+OR any mixture of either single ('/'-delimited) fields or multi-field
+wildcards.
+
+**Note** that multiple multi-field wildcards will only work *if* there is
+a fixed field between the wildcard fields:
+
+
+```scheme
+(get "/appFiles/*file-path/and/*second-path" (lambda (req)
+  (string-append
+    "Requested file: " (params req 'file-path)
+    "\nSecond path: " (params req 'second-path)
+  )))
+```
+
+```
+$ curl "http://localhost:8000/appFiles/images/jasmine_favicon.png/someThingMore/"
+Requested file: images/jasmine_favicon.png
+Second path: lib/jasmine-core/jasmine.css
 ```
 
 ## Templating
