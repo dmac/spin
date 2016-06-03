@@ -53,7 +53,7 @@ $ curl "http://localhost:8000/hi/Peter"
 Hello, Peter!
 ```
 
-OR using a multi-field "wildcard":
+or using a multi-field "wildcard":
 
 
 ```scheme
@@ -62,11 +62,11 @@ OR using a multi-field "wildcard":
 ```
 
 ```
-$ curl "http://localhost:8000/appFiles/images/jasmine_favicon.png"
-Requested file: images/jasmine_favicon.png
+$ curl "http://localhost:8000/appFiles/images/image.png"
+Requested file: images/image.png
 ```
 
-OR any mixture of either single ('/'-delimited) fields or multi-field
+or any mixture of either single ('/'-delimited) fields or multi-field
 wildcards.
 
 **Note** that multiple multi-field wildcards will only work *if* there is
