@@ -4,6 +4,9 @@ Write RESTful web apps in Racket.
 
 Spin layers some convenience functions on top of Racket's built-in web server to simplify defining routes and route handlers.
 
+## Installation
+From command line, execute `raco pkg install https://github.com/dmac/spin.git` to install the package.
+
 ## Overview
 
 Define routes with one of `get`, `post`, `put`, `patch`, `delete` and pass it the route string and a handler function.
