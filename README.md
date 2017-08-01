@@ -43,7 +43,8 @@ $ curl "http://localhost:8000/hi" -X POST -d "name=Anansi"
 Hello, Anansi!
 ```
 
-Retrieve params from the url string itself:
+Retrieve params from the url string itself using a single ('/'-delimited)
+field:
 
 ```scheme
 (get "/hi/:name" (lambda (req)
@@ -54,6 +55,41 @@ Retrieve params from the url string itself:
 $ curl "http://localhost:8000/hi/Peter"
 Hello, Peter!
 ```
+
+or using a multi-field "wildcard":
+
+
+```scheme
+(get "/appFiles/*file-path" (lambda (req)
+  (string-append "Requested file: " (params req 'file-path) "!")))
+```
+
+```
+$ curl "http://localhost:8000/appFiles/images/image.png"
+Requested file: images/image.png
+```
+
+or any mixture of either single ('/'-delimited) fields or multi-field
+wildcards.
+
+**Note** that multiple multi-field wildcards will only work *if* there is
+a fixed field between the wildcard fields:
+
+```scheme
+(get "/title/*title/date/*date" (lambda (req)
+  (string-append
+    "Post title: " (params req 'title)
+    "\nPost  date: " (params req 'date)
+  )))
+```
+
+```
+$ curl "http://localhost:8000/title/proving/computations/correct/date/2016/05/23/"
+Post title: proving/computations/correct
+Post  date: 2016/05/23
+```
+
+(anything will work so long as it does not start with either ':' or '*').
 
 ## Templating
 
